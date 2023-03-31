@@ -37,6 +37,7 @@ void setSequence(string file) {
             SEQUENCE += temp;
         }
     }
-
     filename.close();
+
+    SEQUENCE += '$';
 }
