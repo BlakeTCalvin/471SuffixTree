@@ -74,23 +74,23 @@ public:
     }
 
     void findPath(Node *u, int index) {
-        Node *v = u->parent;
+        Node *v = u;
+        Node *currentChild; // for keeping track of child node if edge gets exhausted
         string x = SEQUENCE.substr(index);
-        int flag = 0;
+        int flag;
+        int r = index; // used for keeping track of index if edge gets exhausted
 
-        // if u has no children, add leaf node
-        if(u->children.empty()) {
-            Node *newNode = new Node(nextLeafID, u->stringDepth+1, u, x);
-            u->children.push_back(newNode);
-            nextLeafID++;
-        }
-        else { // children exist
-            for (Node *node : u->children) {
+        // continue loop until a return statement is hit
+        while (1) {
+            flag = 0; // reset flag
+            // searching child branch that starts with x[0]
+            for (Node *node : v->children) {
                 if (node->parentEdgeLabel[0] == x[0]) { // child branch starts with x[0]
                     flag == 1; // update flag to know we found an edge we can reuse
+                    currentChild = node; // update current child, in case edge gets exhausted
 
                     // loop through parentEdgeLabel and check for matches on x
-                    for (int i=1; i<node->parentEdgeLabel.length(); i++) {
+                    for (int i=0; i<node->parentEdgeLabel.length(); i++) {
                         if (node->parentEdgeLabel[i] != x[i]) { // mismatch
                             // break edge
                             string edgePart1 = node->parentEdgeLabel.substr(0, i-1);
@@ -98,19 +98,19 @@ public:
                             string newLeafEdge = x.substr(i);
 
                             // remove old child from u
-                            for (auto it = u->children.begin(); it != u->children.end(); ++it) {
+                            for (auto it = v->children.begin(); it != v->children.end(); ++it) {
                                 if (*it == node) { // correct node is found in children vector
-                                    u->children.erase(it);
+                                    v->children.erase(it);
                                     break;
                                 }
                             }
 
                             // new internal node
-                            Node *newInternalNode = new Node(nextInternalID, u->stringDepth+1, u, edgePart1);
+                            Node *newInternalNode = new Node(nextInternalID, v->stringDepth+1, v, edgePart1);
                             nextInternalID++;
 
                             // make internal node new child
-                            u->children.push_back(newInternalNode);
+                            v->children.push_back(newInternalNode);
 
                             // update child node 
                             node->parent = newInternalNode;
@@ -126,16 +126,25 @@ public:
                             newInternalNode->children.push_back(newLeafNode);
                             return;
                         }
+                        else {
+                            r++; // increment r each time we find a match
+                        }
                     }
 
-                    // parentEdgeLabel was exhausted
-                    // TODO
+                    // parentEdgeLabel was exhausted, return never hit
+                    v = currentChild;
+                    x = SEQUENCE.substr(r);
+
+                    break; // break the loop, we already found the child
                 }
             }
-            if (flag == 0) { // no child has edge label start with x[0]. Insert new child under u
-                Node *newNode = new Node(nextLeafID, u->stringDepth+1, u, x);
-                u->children.push_back(newNode);
+
+            // flag never updated, no child has edge label start with x[0]. Insert new child under u
+            if (flag == 0) {
+                Node *newNode = new Node(nextLeafID, v->stringDepth+1, v, x);
+                v->children.push_back(newNode);
                 nextLeafID++;
+                return;
             }
         }
     }
