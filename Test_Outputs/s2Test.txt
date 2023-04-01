@@ -1,0 +1,29 @@
+
+************ OUTPUT *************
+---- DFS Node Information
+
+Node ID: 13 has depth 0 | Node ID: 17 has depth 1 | Node ID: 8 has depth 5 | Node ID: 15 has depth 4 | Node ID: 5 has depth 8 | Node ID: 2 has depth 11 | Node ID: 11 has depth 3 | 
+Node ID: 1 has depth 12 | Node ID: 18 has depth 1 | Node ID: 10 has depth 3 | Node ID: 9 has depth 4 | Node ID: 14 has depth 1 | Node ID: 4 has depth 9 | Node ID: 16 has depth 2 | 
+Node ID: 3 has depth 10 | Node ID: 6 has depth 8 | Node ID: 7 has depth 10 | Node ID: 12 has depth 1 | 
+
+---- String and Alphabet Information
+Sequence File Name: s2.fas
+Alphabet File Name: English_alphabet.txt
+
+---- Tree Statistics
+Number of Internal Nodes: 7
+Number of Leaf Nodes: 12
+Total Number of Nodes: 19
+Average String Depth of Internal Nodes: 1
+Deepest String Depth of Internal Nodes: 4
+
+Tree Size: 200 bytes.
+Tree Construction Time: 5575 microseconds.
+
+---- BWT Information
+The BWT index is: I S S M P $ P I S I S 
+
+---- Exact Matching Repeat Information
+STRING: ISSI
+Start Position: 15
+Length: 4

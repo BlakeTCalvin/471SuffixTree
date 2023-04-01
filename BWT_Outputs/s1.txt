@@ -1,0 +1,2 @@
+The BWT index is: 
+A N N B $ A A 

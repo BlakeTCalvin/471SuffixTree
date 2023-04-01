@@ -13,17 +13,13 @@
 #include <cmath>
 #include <vector>
 #include <unordered_map>
+#include <chrono>
 #include <boost/algorithm/string/erase.hpp>
 
 using namespace std;
 
-/***** GLOBALS *****/
 // BWT
 vector<char> BWT;
-
-// Matching Repeat
-string MR_LENGTH;
-int MR_START;
 
 // sequence/alphabet
 string SEQUENCE_HEADER, SEQUENCE;
@@ -34,7 +30,7 @@ int SEQUENCE_LENGTH;
 void setAlphabet(string file);
 void setSequence(string file);
 
-/****** NODE STRUCT AND ST CLASS ******/
+/****** NODE STRUCT ******/
 struct Node {
     int id;
     int stringDepth;
@@ -54,9 +50,18 @@ struct Node {
     }
 };
 
+// Deepest Internal Node
+Node *DEEPEST_INTERNAL_NODE;
+string LONGEST_MATCHING_REPEAT;
+
+// Matching Repeat
+int MR_LENGTH;
+int MR_START;
+
+/****** ST CLASS ******/
 class ST {
 public:
-    // public function i
+    // public function i | Constructor
     ST(string fasta, string alphabet) {
         setAlphabet(alphabet);
         setSequence(fasta);
@@ -81,12 +86,16 @@ public:
         BWT.pop_back();
 
         // ------------
+        longestMatchingRepeat();
+        MR_LENGTH = LONGEST_MATCHING_REPEAT.length();
 
     }
 
     ~ST() { }
 
     // ---- getters
+    Node *getRoot() { return this->root; }
+
     int getLeaves() { return this->leaves; }
 
     int getNextInternalID() { return this->nextInternalID; }
@@ -104,7 +113,7 @@ public:
     int getAverageInternalDepth() { return this->averageInternalDepth; }
 
     // ---- other functions
-    // public function ii
+    // public function ii | Display all children of a node 
     void displayChildren(Node *node) { 
         cout << "Node: " << node->id << "'s children from left to right are: " << endl;
         for (Node *child : node->children) {
@@ -112,7 +121,7 @@ public:
         }
     }
 
-    // public function iii
+    // public function iii | Enumerate our nodes in DFS order 
     void enumerateNodes(Node *node, int &counter) { // Depth First Search Enumeration
         counter++; // increase counter for each node
         if (counter % 7 == 0) {
@@ -125,7 +134,7 @@ public:
         }
     }
 
-    // public function iv
+    // public function iv | get our BWT 
     void generateBWT(Node *node) {
         if (node->children.empty()) {
             if (node->id - 1 > 0) {
@@ -142,13 +151,18 @@ public:
         }
     }
 
-
-    // ----------------------------------
     // function to get longest matching repeat in our tree and save the start and length to globals
-
-
-
-    // -----------------------------------
+    void longestMatchingRepeat() {
+        Node *currentNode = DEEPEST_INTERNAL_NODE;
+        string temp;
+        MR_START = DEEPEST_INTERNAL_NODE->id;
+        while (currentNode != root) {
+            temp = currentNode->parentEdgeLabel;
+            reverse(temp.begin(), temp.end());
+            LONGEST_MATCHING_REPEAT += temp;
+            currentNode = currentNode->parent;
+        }
+    }
 
     // find path function
     Node *findPath(Node *u, int index) {
@@ -214,6 +228,7 @@ public:
                             // comparing our deepestStringDepth with our newest created internal node
                             if (newInternalNode->stringDepth > deepestStringDepth) {
                                 deepestStringDepth = newInternalNode->stringDepth;
+                                DEEPEST_INTERNAL_NODE = newInternalNode;
                             }
 
                             totalInternalDepth += newInternalNode->stringDepth;
@@ -246,10 +261,72 @@ public:
 
     // ---- tree construction functions
     void initializeTree() {
-        this->root = new Node(nextInternalID, 0, nullptr, " ");
+        this->root = new Node(nextInternalID, 0, root, " ");
         this->root->suffixLink = root;
         internalNodes++;
         nextInternalID++;
+    }
+
+    Node *NodeHops(Node *node, int index, int startBeta, int endBeta) {
+        int betaIndex = startBeta;
+        Node *currentNode = node;
+        Node *v = nullptr;
+        while (v == nullptr) {
+            for (Node *child : currentNode->children) {
+                if (child->parentEdgeLabel[0] == SEQUENCE[betaIndex]) {
+                    if (endBeta < betaIndex + child->parentEdgeLabel.length()) { // quit early create a new internal node
+                        // break edge
+                        string edgePart1 = child->parentEdgeLabel.substr(0, endBeta-currentNode->stringDepth);
+                        string edgePart2 = child->parentEdgeLabel.substr(endBeta-currentNode->stringDepth);
+
+                        // remove old child from currentNode
+                        for (auto it = currentNode->children.begin(); it != currentNode->children.end(); ++it) {
+                            if (*it == child) { // correct node is found in children vector
+                                currentNode->children.erase(it);
+                                break;
+                            }
+                        }
+
+                        // new internal node
+                        Node *newInternalNode = new Node(nextInternalID, currentNode->stringDepth + edgePart1.length(), currentNode, edgePart1);
+                        internalNodes++;
+                        nextInternalID++;
+
+                        // make internal node new child and order the children using lambda function to balance based off of the parentEdgeLabels 
+                        currentNode->children.push_back(newInternalNode);
+                        sort(currentNode->children.begin(), currentNode->children.end(), [](Node *node1, Node *node2) { 
+                            return node1->parentEdgeLabel[0] < node2->parentEdgeLabel[0]; 
+                            });
+
+                        // update child node 
+                        child->parent = newInternalNode;
+                        child->stringDepth = newInternalNode->stringDepth + edgePart2.length();
+                        child->parentEdgeLabel = edgePart2;
+
+                        // adding former child as new Internal node child
+                        newInternalNode->children.push_back(child);
+
+                        // comparing our deepestStringDepth with our newest created internal node
+                        if (newInternalNode->stringDepth > deepestStringDepth) {
+                            deepestStringDepth = newInternalNode->stringDepth;
+                            DEEPEST_INTERNAL_NODE = newInternalNode;
+                        }
+                        
+                        // setting v equal to internal node
+                        v = newInternalNode;
+
+                    }
+                    else if (endBeta == betaIndex + child->parentEdgeLabel.length()) { // landed on a node
+                        v = child;
+                    }
+                    else { // not finished with beta string
+                        betaIndex = betaIndex + child->parentEdgeLabel.length();
+                    }
+                }
+            }
+        }
+
+        return v;
     }
 
     void buildST() {
@@ -263,26 +340,42 @@ public:
         averageInternalDepth = totalInternalDepth / internalNodes;
     }
 
-    // void buildST() {
-    //     Node *mostRecentLeaf = root;
-    //     for (int i=0; i < SEQUENCE.length(); i++) {
-    //         Node *v = mostRecentLeaf->parent->suffixLink;
-    //         if (v) { // suffix link exists for u
+    //almost working build tree function with suffix links
+    // void buildST() { // Using suffix links
+    //     // trivial case of the first insertion
+    //     Node *newNode = new Node(nextLeafID, SEQUENCE.length(), root, SEQUENCE);
+    //     root->children.push_back(newNode);
+    //     leaves++;
+    //     nextLeafID++;
+    
+    //     Node *mostRecentLeaf = newNode;
+    //     for (int i=1; i < SEQUENCE.length(); i++) {
+    //         if (mostRecentLeaf->parent->suffixLink) { // suffix link exists for u
+    //             Node *v = mostRecentLeaf->parent->suffixLink;
     //             if (v != root) { // Case 1A
-    //                 mostRecentLeaf = findPath(v, v->stringDepth);
+    //                 mostRecentLeaf = findPath(v, i+v->stringDepth);
     //             }
     //             else { // Case 1B
     //                 mostRecentLeaf = findPath(root, i);
     //             }
-    //             mostRecentLeaf = findPath(v, i);
     //         }
     //         else { // suffix link doesnt exist for u
-    //             Node *uPrime = mostRecentLeaf->parent->parent;
+    //             Node *u = mostRecentLeaf->parent;
+    //             Node *uPrime = u->parent;
     //             Node *vPrime = uPrime->suffixLink;
-    //             mostRecentLeaf = findPath(vPrime, i);
+    //             if (uPrime != root) { // Case 2A
+    //                 Node *v = NodeHops(vPrime, i+vPrime->stringDepth, uPrime->stringDepth, u->stringDepth);
+    //                 u->suffixLink = v;
+    //                 mostRecentLeaf = findPath(v, uPrime->stringDepth);
+    //             }
+    //             else { // Case 2B
+    //                 Node *v = NodeHops(root, i, 1, u->stringDepth);
+    //                 u->suffixLink = v;
+    //                 mostRecentLeaf = findPath(v, i+v->stringDepth);
+    //             }
     //         }
     //     }
-
+    
     //     // updating stats
     //     totalNodes = internalNodes + leaves;
     //     averageInternalDepth = totalInternalDepth / internalNodes;

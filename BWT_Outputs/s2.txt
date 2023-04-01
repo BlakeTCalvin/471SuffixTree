@@ -1,0 +1,2 @@
+The BWT index is:
+I S S M P $ P I S I S
