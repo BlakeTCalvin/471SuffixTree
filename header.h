@@ -17,6 +17,8 @@
 using namespace std;
 
 /***** GLOBALS *****/
+// BWT
+vector<char> BWT;
 
 // sequence/alphabet
 string SEQUENCE_HEADER, SEQUENCE;
@@ -64,6 +66,11 @@ public:
         initializeTree();
         buildST();
         enumerateNodes(root, start);
+        generateBWT(root);
+        
+        char temp = BWT.back();
+        BWT.insert(BWT.begin(), temp);
+        BWT.pop_back();
     }
 
     ~ST() { }
@@ -108,8 +115,20 @@ public:
     }
 
     // public function iv
-    void BWTIndex() {
-
+    void generateBWT(Node *node) {
+        if (node->children.empty()) {
+            if (node->id - 1 > 0) {
+                BWT.push_back(SEQUENCE[node->id - 2]);
+            }
+            else {
+                BWT.push_back(SEQUENCE[SEQUENCE.length() - 1]);
+            }
+        }
+        else {
+            for (Node *child : node->children) {
+                generateBWT(child);
+            }
+        }
     }
 
     Node *findPath(Node *u, int index) {
@@ -230,7 +249,7 @@ public:
     //         Node *v = mostRecentLeaf->parent->suffixLink;
     //         if (v) { // suffix link exists for u
     //             if (v != root) { // Case 1A
-    //                 mostRecentLeaf = findPath(v, i);
+    //                 mostRecentLeaf = findPath(v, v->stringDepth);
     //             }
     //             else { // Case 1B
     //                 mostRecentLeaf = findPath(root, i);
