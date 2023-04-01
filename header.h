@@ -12,6 +12,7 @@
 #include <initializer_list>
 #include <cmath>
 #include <vector>
+#include <unordered_map>
 #include <boost/algorithm/string/erase.hpp>
 
 using namespace std;
@@ -19,6 +20,10 @@ using namespace std;
 /***** GLOBALS *****/
 // BWT
 vector<char> BWT;
+
+// Matching Repeat
+string MR_LENGTH;
+int MR_START;
 
 // sequence/alphabet
 string SEQUENCE_HEADER, SEQUENCE;
@@ -63,19 +68,25 @@ public:
 
         int start = -1;
 
+        // tree building
         initializeTree();
         buildST();
+
+        // other functions
         enumerateNodes(root, start);
         generateBWT(root);
         
         char temp = BWT.back();
         BWT.insert(BWT.begin(), temp);
         BWT.pop_back();
+
+        // ------------
+
     }
 
     ~ST() { }
 
-    // getters
+    // ---- getters
     int getLeaves() { return this->leaves; }
 
     int getNextInternalID() { return this->nextInternalID; }
@@ -92,7 +103,7 @@ public:
 
     int getAverageInternalDepth() { return this->averageInternalDepth; }
 
-    // other functions
+    // ---- other functions
     // public function ii
     void displayChildren(Node *node) { 
         cout << "Node: " << node->id << "'s children from left to right are: " << endl;
@@ -102,7 +113,7 @@ public:
     }
 
     // public function iii
-    void enumerateNodes(Node *node, int& counter) { // Depth First Search Enumeration
+    void enumerateNodes(Node *node, int &counter) { // Depth First Search Enumeration
         counter++; // increase counter for each node
         if (counter % 7 == 0) {
             cout << endl;
@@ -131,6 +142,15 @@ public:
         }
     }
 
+
+    // ----------------------------------
+    // function to get longest matching repeat in our tree and save the start and length to globals
+
+
+
+    // -----------------------------------
+
+    // find path function
     Node *findPath(Node *u, int index) {
         Node *v = u;
         Node *currentChild; // for keeping track of child node if edge gets exhausted
@@ -224,7 +244,7 @@ public:
         }
     }
 
-    // tree construction functions
+    // ---- tree construction functions
     void initializeTree() {
         this->root = new Node(nextInternalID, 0, nullptr, " ");
         this->root->suffixLink = root;
@@ -270,6 +290,7 @@ public:
 
 private:
     Node *root;
+
     // tree statistics
     int internalNodes, leaves, totalNodes, averageStringDepth, deepestStringDepth, totalInternalDepth, averageInternalDepth, nextInternalID, nextLeafID;
 };

@@ -24,4 +24,8 @@ int main(int argc, char *argv[]) {
         cout << BWT[i] << " ";
     }
     cout << endl;
+
+    cout << endl << "---- Exact Matching Repeat Information" << endl;
+    cout << "Start Position: " << MR_START << endl;
+    cout << "Length: " << MR_LENGTH <<endl;
 }
