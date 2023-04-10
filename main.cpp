@@ -32,15 +32,15 @@ int main(int argc, char *argv[]) {
     cout << endl << "Tree Size: " << size << " bytes." << endl;
     cout << "Tree Construction Time: " << time.count() << " microseconds." << endl;
 
-    cout << endl << "---- BWT Information" << endl;
-    cout << "The BWT index is: ";
-    for (int i=0; i<BWT.size(); i++) {
-        cout << BWT[i] << " ";
-    }
-    cout << endl;
+    // cout << endl << "---- BWT Information" << endl;
+    // cout << "The BWT index is: ";
+    // for (int i=0; i<BWT.size(); i++) {
+    //     cout << BWT[i] << " ";
+    // }
+    // cout << endl;
 
-    cout << endl << "---- Exact Matching Repeat Information" << endl;
-    cout << "STRING: " << LONGEST_MATCHING_REPEAT << endl;
-    cout << "Start Position: " << MR_START << endl;
-    cout << "Length: " << MR_LENGTH <<endl; 
+    // cout << endl << "---- Exact Matching Repeat Information" << endl;
+    // cout << "STRING: " << LONGEST_MATCHING_REPEAT << endl;
+    // cout << "Start Position: " << MR_START << endl;
+    // cout << "Length: " << MR_LENGTH <<endl; 
 }

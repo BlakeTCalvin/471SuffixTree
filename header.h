@@ -78,7 +78,7 @@ public:
         buildST();
 
         // other functions
-        enumerateNodes(root, start);
+        // enumerateNodes(root, start);
         generateBWT(root);
         
         char temp = BWT.back();
@@ -272,7 +272,7 @@ public:
         Node *currentNode = node;
         Node *v = nullptr;
         while (v == nullptr) {
-            for (Node *child : currentNode->children) {
+            for (Node *child : currentNode->children) { // checking current nodes children for child labels
                 if (child->parentEdgeLabel[0] == SEQUENCE[betaIndex]) {
                     if (endBeta < betaIndex + child->parentEdgeLabel.length()) { // quit early create a new internal node
                         // break edge
@@ -329,6 +329,7 @@ public:
         return v;
     }
 
+    // Naive Implementation
     void buildST() {
         Node *mostRecentLeaf = root;
         for (int i=0; i < SEQUENCE.length(); i++) {
@@ -347,19 +348,21 @@ public:
     //     root->children.push_back(newNode);
     //     leaves++;
     //     nextLeafID++;
-    
+
+    //     // Rest of the insertions
     //     Node *mostRecentLeaf = newNode;
     //     for (int i=1; i < SEQUENCE.length(); i++) {
-    //         if (mostRecentLeaf->parent->suffixLink) { // suffix link exists for u
-    //             Node *v = mostRecentLeaf->parent->suffixLink;
-    //             if (v != root) { // Case 1A
-    //                 mostRecentLeaf = findPath(v, i+v->stringDepth);
+    //         Node *u = mostRecentLeaf->parent;
+    //         if (u->suffixLink != nullptr) { // CASE 1: suffix link exists for u
+    //             if (u != root) { // Case 1A
+    //                 Node *v = mostRecentLeaf->parent->suffixLink;
+    //                 mostRecentLeaf = findPath(v, i+v->stringDepth-1);
     //             }
     //             else { // Case 1B
     //                 mostRecentLeaf = findPath(root, i);
     //             }
     //         }
-    //         else { // suffix link doesnt exist for u
+    //         else { // CASE 2: suffix link doesnt exist for u
     //             Node *u = mostRecentLeaf->parent;
     //             Node *uPrime = u->parent;
     //             Node *vPrime = uPrime->suffixLink;
@@ -369,7 +372,7 @@ public:
     //                 mostRecentLeaf = findPath(v, uPrime->stringDepth);
     //             }
     //             else { // Case 2B
-    //                 Node *v = NodeHops(root, i, 1, u->stringDepth);
+    //                 Node *v = NodeHops(root, i, 0, u->stringDepth);
     //                 u->suffixLink = v;
     //                 mostRecentLeaf = findPath(v, i+v->stringDepth);
     //             }
